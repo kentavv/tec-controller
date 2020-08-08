@@ -9,15 +9,15 @@
 #
 # Please see LICENSE for limitations on use.
 
-import time
-import datetime
 import sys
-import random
+import time
 
 import vxi11
+
 import extech_ea15
 
 ps_ip = '192.168.1.144'
+
 
 def main(dev_fn):
     def decode(v):
@@ -31,6 +31,7 @@ def main(dev_fn):
             print('Unknown instrument:', idn)
             sys.exit(1)
         instr.write('*RST')
+
         # instr.write('CONF:VOLT:DC AUTO,DEF')
         # instr.write('CONF:VOLT:DC 1,0.001')
         # instr.write('CONF:VOLT:AC 10,0.001')
@@ -94,7 +95,6 @@ if __name__ == "__main__":
 
             # instr.write(':SYST:ONOFFS OFF')
 
-
             instr.write(':APPL CH1,12,1')
             instr.write(':APPL CH2,12,1')
 
@@ -108,11 +108,11 @@ if __name__ == "__main__":
             print(instr.ask(':OUTP? CH1'))
             print(instr.ask(':OUTP? CH2'))
 
-            for i in range(1, 6+1):
+            for i in range(1, 6 + 1):
                 print('\n----------', i)
 
-                ch1_i = i/2-.2
-                ch2_i = i/2+.2
+                ch1_i = i / 2 - .2
+                ch2_i = i / 2 + .2
                 print(ch1_i, ch2_i)
 
                 instr.write(f':SOUR1:CURR {ch1_i}')
@@ -179,11 +179,14 @@ if __name__ == "__main__":
                 ch2_meas = [float(x) for x in instr.ask(':MEAS:ALL? CH2').split(',')]
                 total_i = ch1_meas[1] + ch2_meas[1]
                 total_w = ch1_meas[2] + ch2_meas[2]
+
+
                 # print(f'CH1: {ch1_meas}  CH2: {ch2_meas}')
                 # print(f'total: {total_i:.04} A  {total_w:.04} W')
 
                 def decode(v):
                     return f'{v["dt"]} : {v["t1"]} : {v["t2"]} : {v["type"]} : {v["valid"]}'
+
 
                 # print('----')
                 while True:
@@ -209,7 +212,10 @@ if __name__ == "__main__":
                                 pid_i = 0
                             elif pid_i > 6:
                                 pid_i = 6
-                            print(f'target:{target_temp:.01f}C, cur:{t1:.01f}C, err:{err:.01f}C, t2:{t2:.01f}, total_i:{total_i:.02f}A, target_i:{target_i:.02f}A, pid_i:{pid_i:.02f}A, kp:{kp:.02f}, term_p:{term_p:.04f}, term_i:{term_i:.04f}, kd:{kd:.02f}, err:{err:.04f}, p_err:{p_err:.04f}, err-p_err:{err-p_err:.04f}, dt:{dt:.04f}, (err-p_err)/dt:{(err-p_err)/dt:.04f}, term_d:{term_d:.04f}')
+                            print(f'target:{target_temp:.01f}C, cur:{t1:.01f}C, err:{err:.01f}C, t2:{t2:.01f}, total_i:{total_i:.02f}A, '
+                                  f'target_i:{target_i:.02f}A, pid_i:{pid_i:.02f}A, kp:{kp:.02f}, term_p:{term_p:.04f}, term_i:{term_i:.04f}, '
+                                  f'kd:{kd:.02f}, err:{err:.04f}, p_err:{p_err:.04f}, err-p_err:{err - p_err:.04f}, dt:{dt:.04f}, '
+                                  f'(err-p_err)/dt:{(err - p_err) / dt:.04f}, term_d:{term_d:.04f}')
                             target_i = pid_i
                         p_err = err
                         break
