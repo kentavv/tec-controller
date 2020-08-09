@@ -12,12 +12,10 @@
 import sys
 import time
 
+import matplotlib.pyplot as plt
 import vxi11
 
 import extech_ea15
-
-import matplotlib.pyplot as plt
-
 
 # If you encounter an error about not being able to use the TkInter matplotlib backend
 # or unable to load the tkinter module, try the following. (TkInter cannot be installed
@@ -25,7 +23,6 @@ import matplotlib.pyplot as plt
 #   sudo apt-get install python3-tk
 
 plt.ion()
-
 
 ps_ip = '192.168.1.144'
 
@@ -184,12 +181,6 @@ if __name__ == "__main__":
         target_temp = -1
         axs['err'].axhline(0)
         target_line = axs['t1'].axhline(target_temp)
-
-        # line1, = ax.plot(x, y1, 'r-', label='T1')  # Returns a tuple of line objects, thus the comma
-        # line2, = ax.plot(x, y2, 'b-', label='T2')  # Returns a tuple of line objects, thus the comma
-        # ax.set_xlabel('Time [s]')
-        # ax.set_ylabel('Temperature [C]')
-        # plt.legend()
 
         with extech_ea15.ExtechEA15Threaded(dev_fn) as ea15:
             instr.write(':APPL CH1,12,1')
