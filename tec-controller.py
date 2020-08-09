@@ -16,6 +16,17 @@ import vxi11
 
 import extech_ea15
 
+import matplotlib.pyplot as plt
+
+
+# If you encounter an error about not being able to use the TkInter matplotlib backend
+# or unable to load the tkinter module, try the following. (TkInter cannot be installed
+# by pipenv.)
+#   sudo apt-get install python3-tk
+
+plt.ion()
+
+
 ps_ip = '192.168.1.144'
 
 
@@ -131,25 +142,78 @@ if __name__ == "__main__":
 
                 time.sleep(2)
 
+        fig, axs_ = plt.subplots(3, 3, sharex=True)
+        axs = {'err': axs_[0][0],
+               't1': axs_[0][1],
+               't2': axs_[0][2],
+
+               'p': axs_[1][0],
+               'i': axs_[1][1],
+               'd': axs_[1][2],
+
+               'i_raw': axs_[2][0],
+               'i_ps': axs_[2][1]
+               }
+
+        x = []
+        ys = {k: [] for k in axs}
+
+        lines = {k: axs[k].plot(x, ys[k], 'r-', label=k)[0] for k in axs}
+
+        axs['err'].set_ylabel('err [C]')
+        axs['t1'].set_ylabel('t1 [C]')
+        axs['t2'].set_ylabel('t2 [C]')
+
+        axs['p'].set_ylabel('p [A]')
+        axs['i'].set_ylabel('i [A]')
+        axs['d'].set_ylabel('d [A]')
+
+        axs['i_raw'].set_ylabel('I_raw [A]')
+        axs['i_ps'].set_ylabel('I_ps [A]')
+
+        fig.add_subplot(111, frameon=False)
+        # hide tick and tick label of the big axis
+        plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
+        plt.xlabel("time [s]")
+        # plt.ylabel("common Y")
+
+        # for ax in axs_.flat:
+        #     ax.set(xlabel='time [s]')
+        #     # ax.label_outer()
+
+        target_temp = -1
+        axs['err'].axhline(0)
+        target_line = axs['t1'].axhline(target_temp)
+
+        # line1, = ax.plot(x, y1, 'r-', label='T1')  # Returns a tuple of line objects, thus the comma
+        # line2, = ax.plot(x, y2, 'b-', label='T2')  # Returns a tuple of line objects, thus the comma
+        # ax.set_xlabel('Time [s]')
+        # ax.set_ylabel('Temperature [C]')
+        # plt.legend()
+
         with extech_ea15.ExtechEA15Threaded(dev_fn) as ea15:
             instr.write(':APPL CH1,12,1')
             instr.write(':APPL CH2,12,1')
+            instr.write(':APPL CH2,5,1')
 
             print(instr.ask(':SOUR1:VOLT?'))
             print(instr.ask(':SOUR2:VOLT?'))
+            print(instr.ask(':SOUR3:VOLT?'))
             print(instr.ask(':SOUR1:CURR?'))
             print(instr.ask(':SOUR2:CURR?'))
+            print(instr.ask(':SOUR3:CURR?'))
 
             instr.write(':OUTP CH1,ON')
             instr.write(':OUTP CH2,ON')
+            instr.write(':OUTP CH3,OFF')
             print(instr.ask(':OUTP? CH1'))
             print(instr.ask(':OUTP? CH2'))
+            print(instr.ask(':OUTP? CH3'))
 
             target_i = 2
 
             time.sleep(2)
 
-            target_temp = -1
             kp = 10
             ki = 1 / 10
             kd = .02
@@ -171,8 +235,15 @@ if __name__ == "__main__":
                 ch1_i = target_i / 2
                 ch2_i = target_i / 2
 
-                instr.write(f':SOUR1:CURR {ch1_i}')
-                instr.write(f':SOUR2:CURR {ch2_i}')
+                if target_i >= 0:
+                    instr.write(f':SOUR1:CURR {ch1_i}')
+                    instr.write(f':SOUR2:CURR {ch2_i}')
+                    instr.write(':OUTP CH3,OFF')
+                elif target_i < 0:
+                    instr.write(f':SOUR1:CURR {-ch1_i}')
+                    instr.write(f':SOUR2:CURR {-ch2_i}')
+                    instr.write(':OUTP CH3,ON')
+
                 # print('CH1(set):', instr.ask(':SOUR1:CURR?'), ' CH2(set):', instr.ask(':SOUR2:CURR?'))
 
                 ch1_meas = [float(x) for x in instr.ask(':MEAS:ALL? CH1').split(',')]
@@ -207,17 +278,50 @@ if __name__ == "__main__":
                             term_p = kp * err
                             term_i += ki * err
                             term_d = kd * (err - p_err) / dt
-                            pid_i = term_p + term_i + term_d
-                            if pid_i < 0:
-                                pid_i = 0
+                            pid_i_raw = term_p + term_i + term_d
+                            pid_i = pid_i_raw
+                            if pid_i < -6:
+                                pid_i = -6
                             elif pid_i > 6:
                                 pid_i = 6
                             print(f'target:{target_temp:.01f}C, cur:{t1:.01f}C, err:{err:.01f}C, t2:{t2:.01f}, total_i:{total_i:.02f}A, '
-                                  f'target_i:{target_i:.02f}A, pid_i:{pid_i:.02f}A, kp:{kp:.02f}, term_p:{term_p:.04f}, term_i:{term_i:.04f}, '
+                                  f'target_i:{target_i:.02f}A, pid_i_raw:{pid_i_raw:.02f}A, pid_i:{pid_i:.02f}A, kp:{kp:.02f}, term_p:{term_p:.04f}, term_i:{term_i:.04f}, '
                                   f'kd:{kd:.02f}, err:{err:.04f}, p_err:{p_err:.04f}, err-p_err:{err - p_err:.04f}, dt:{dt:.04f}, '
                                   f'(err-p_err)/dt:{(err - p_err) / dt:.04f}, term_d:{term_d:.04f}')
                             target_i = pid_i
+
+                            ys['err'] += [err]
+                            ys['t1'] += [v['t1'].C()]
+                            ys['t2'] += [v['t2'].C()]
+
+                            ys['p'] += [term_p]
+                            ys['i'] += [term_i]
+                            ys['d'] += [term_d]
+
+                            ys['i_raw'] += [pid_i_raw]
+                            ys['i_ps'] += [pid_i]
+
+                            if x == []:
+                                t0 = v['dt']
+                            x += [(v['dt'] - t0).total_seconds()]
+
+                            target_line.set_ydata([target_temp, target_temp])
+
+                            # print('x:', x)
+                            for k in axs:
+                                # print(f'y{k}:', ys[k])
+                                lines[k].set_xdata(x)
+                                lines[k].set_ydata(ys[k])
+
+                            for k in axs:
+                                axs[k].relim()
+                                axs[k].autoscale_view()
+
+                            fig.canvas.draw()
+                            fig.canvas.flush_events()
+
                         p_err = err
+
                         break
 
                         # if len(err_lst) > 10:
@@ -238,3 +342,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         instr.write(f':SOUR1:CURR .5')
         instr.write(f':SOUR2:CURR .5')
+        instr.write(':OUTP CH1,OFF')
+        instr.write(':OUTP CH2,OFF')
+        instr.write(':OUTP CH3,OFF')
