@@ -8,6 +8,7 @@ matplotlib = "*"
 numpy = "*"
 pyserial = "*"
 python-vxi11 = "*"
+pyqt5 = "*"
 
 [dev-packages]
 

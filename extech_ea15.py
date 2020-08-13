@@ -74,7 +74,7 @@ class ExtechEA15Serial:
     ser = None
     download_datalog_ = False
 
-    def __init__(self, dev_fn=''):
+    def __init__(self, dev_fn='', timeformat='datetime'):
         self.open(dev_fn)
 
     def __del__(self):
@@ -282,12 +282,12 @@ class ExtechEA15Threaded:
     download_datalog_ = False
     dev_fn_ = ''
 
-    def __init__(self, dev_fn=''):
+    def __init__(self, dev_fn='', timeformat='datetime'):
         self.q = mp.Queue()
         self.q2 = mp.Queue()
         self.q3 = mp.Queue()
         self.dev_fn_ = dev_fn
-        self.ea15 = ExtechEA15Serial(dev_fn)
+        self.ea15 = ExtechEA15Serial(dev_fn, timeformat=timeformat)
 
     def __del__(self):
         pass
@@ -354,7 +354,7 @@ def main(dev_fn):
                 print(decode(v))
 
     if False:
-        with ExtechEA15Threaded(dev_fn) as ea15:
+        with ExtechEA15Threaded(dev_fn, timeformat='dt') as ea15:
             import time, random
 
             while True:
@@ -378,7 +378,7 @@ def main(dev_fn):
                         sps, lst = v2
                         print(f'Datalog set {j + 1} with {len(lst)} records, sampled every {sps} seconds')
                         for i, v in enumerate(lst):
-                            v['dt'] = i * sps
+                            # v['dt'] = i * sps
                             print(f'{j + 1:02d} : {i + 1:04d} : {decode(v)}')
 
                 time.sleep(.5)
