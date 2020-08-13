@@ -13,9 +13,6 @@ import sys
 
 import matplotlib
 import vxi11
-
-matplotlib.use('Qt5Agg')
-
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -24,11 +21,14 @@ import extech_ea15
 
 ps_ip = '192.168.1.144'
 
+matplotlib.use('Qt5Agg')
 
-class TEC_Controller():
+
+class TEC_Controller:
     def __init__(self):
         self.config_fn = 'config.txt'
 
+        self.target_temp = 22.5
         self.kp = 2
         self.ki = .002
         self.kd = .5
@@ -59,6 +59,18 @@ class TEC_Controller():
             print('Unknown instrument:', idn)
             sys.exit(1)
 
+        self.target_i = .5
+
+        self.err_lst = []
+        self.term_i = 0
+        self.p_err = None
+        self.t0 = None
+        self.st = None
+        self.t0 = None
+        self.total_i = 0
+        self.total_w = 0
+        self.target_i = 0
+
     def __del__(self):
         if self.instr is not None:
             self.instr.write(f':SOUR1:CURR .5')
@@ -74,11 +86,9 @@ class TEC_Controller():
     def load_config(self):
         try:
             cc = [float(x) for x in open(self.config_fn).read().split()]
+            self.target_temp, self.kp, self.ki, self.kd = cc
         except FileNotFoundError:
-            cc = 22.5, 2, .002, .5
-            print(f'Config {self.config_fn} not found, using defaults... {cc}')
-
-        self.target_temp, self.kp, self.ki, self.kd = cc
+            print(f'Config {self.config_fn} not found, leaving parameters unchanged.')
 
     def setup(self):
         self.instr.write('*RST')
@@ -108,14 +118,6 @@ class TEC_Controller():
         print(self.instr.ask(':OUTP? CH1'))
         print(self.instr.ask(':OUTP? CH2'))
         print(self.instr.ask(':OUTP? CH3'))
-
-        self.target_i = .5
-
-        self.err_lst = []
-        self.term_i = 0
-        self.p_err = None
-        self.t0 = None
-        self.st = None
 
     def step(self):
         def decode(v):

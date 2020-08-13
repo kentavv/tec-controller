@@ -17,6 +17,7 @@
 
 import datetime
 import multiprocessing as mp
+import random
 import time
 
 import serial
@@ -84,7 +85,7 @@ class ExtechEA15Serial:
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, tb):
+    def __exit__(self, type_, value, tb):
         pass
 
     def open(self, dev_fn):
@@ -275,19 +276,13 @@ class ExtechEA15Serial:
 
 
 class ExtechEA15Threaded:
-    q = None
-    q2 = None
-    q3 = None
-    ea15 = None
-    download_datalog_ = False
-    dev_fn_ = ''
-
     def __init__(self, dev_fn='', timeformat='datetime'):
         self.q = mp.Queue()
         self.q2 = mp.Queue()
         self.q3 = mp.Queue()
         self.dev_fn_ = dev_fn
         self.ea15 = ExtechEA15Serial(dev_fn, timeformat=timeformat)
+        self.download_datalog_ = False
 
     def __del__(self):
         pass
@@ -296,7 +291,7 @@ class ExtechEA15Threaded:
         self.run()
         return self
 
-    def __exit__(self, type, value, tb):
+    def __exit__(self, type_, value, tb):
         pass
 
     def open(self, dev_fn):
@@ -355,8 +350,6 @@ def main(dev_fn):
 
     if False:
         with ExtechEA15Threaded(dev_fn, timeformat='dt') as ea15:
-            import time, random
-
             while True:
                 while not ea15.q.empty():
                     v = ea15.q.get()
@@ -405,8 +398,6 @@ def main(dev_fn):
         plt.legend()
 
         with ExtechEA15Threaded(dev_fn) as ea15:
-            import time, random
-
             t0 = 0
             while True:
                 while not ea15.q.empty():
