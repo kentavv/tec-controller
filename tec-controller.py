@@ -266,8 +266,8 @@ class MplCanvas(FigureCanvas):
         self.axs['t2'].set_ylabel('t2 [C]')
 
         self.axs['p'].set_ylabel('p [A]/[C]')
-        self.axs['i'].set_ylabel('i [A]/([C][S])')
-        self.axs['d'].set_ylabel('d [A][S]/[C]')
+        self.axs['i'].set_ylabel('i [A]/([C][s])')
+        self.axs['d'].set_ylabel('d [A][s]/[C]')
 
         self.axs['i_raw'].set_ylabel('I_raw [A]')
         self.axs['i_ps'].set_ylabel('I_ps [A]')
@@ -276,7 +276,7 @@ class MplCanvas(FigureCanvas):
 
         # To create a common x-label, overlay an empty graph over the sub-graphs
         a = fig.add_subplot(111, frameon=False)
-        a.set_xlabel("Time [S]")
+        a.set_xlabel("Time [s]")
         a.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
 
 
