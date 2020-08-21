@@ -38,7 +38,9 @@ class TEC_Controller:
         self.x = []
         self.ys = {k: [] for k in ['err', 't1', 't2',
                                    'p', 'i', 'd',
-                                   'i_raw', 'i_ps']}
+                                   'i_raw', 'i_ps',
+                                   'ps1_v', 'ps2_v',
+                                   'ps1_i', 'ps2_i']}
 
         self.load_config()
 
@@ -232,6 +234,11 @@ class TEC_Controller:
             self.ys['i_raw'] += [pid_i_raw]
             self.ys['i_ps'] += [pid_i]
 
+            self.ys['ps1_v'] += [ch1_meas[0]]
+            self.ys['ps2_v'] += [ch2_meas[0]]
+            self.ys['ps1_i'] += [ch1_meas[1]]
+            self.ys['ps2_i'] += [ch2_meas[1]]
+
             self.x += [t]
 
         self.p_err = err
@@ -241,7 +248,7 @@ class TEC_Controller:
 class MplCanvas(FigureCanvas):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
-        axs_ = fig.subplots(3, 3, sharex='all')
+        axs_ = fig.subplots(4, 3, sharex='all')
         super(MplCanvas, self).__init__(fig)
 
         self.axs = {'err': axs_[0][0],
@@ -253,7 +260,12 @@ class MplCanvas(FigureCanvas):
                     'd': axs_[1][2],
 
                     'i_raw': axs_[2][0],
-                    'i_ps': axs_[2][1]
+                    'i_ps': axs_[2][1],
+                    'ps1_v': axs_[2][2],
+
+                    'ps1_i': axs_[3][0],
+                    'ps2_i': axs_[3][1],
+                    'ps2_v': axs_[3][2]
                     }
 
         self.x = []
@@ -271,6 +283,11 @@ class MplCanvas(FigureCanvas):
 
         self.axs['i_raw'].set_ylabel('I_raw [A]')
         self.axs['i_ps'].set_ylabel('I_ps [A]')
+
+        self.axs['ps1_v'].set_ylabel('ps1_V [V]')
+        self.axs['ps2_v'].set_ylabel('ps2_V [V]')
+        self.axs['ps1_i'].set_ylabel('ps1_I [A]')
+        self.axs['ps2_i'].set_ylabel('ps2_I [A]')
 
         self.target_line = self.axs['t1'].axhline(0)
 
