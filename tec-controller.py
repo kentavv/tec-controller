@@ -9,6 +9,8 @@
 #
 # Please see LICENSE for limitations on use.
 
+# TODO Catch socket.timeout from self.instr
+
 import sys
 
 import matplotlib
@@ -273,13 +275,13 @@ class MplCanvas(FigureCanvas):
 
         self.lines = {k: self.axs[k].plot(self.x, self.ys[k], 'r-', label=k)[0] for k in self.axs}
 
-        self.axs['err'].set_ylabel('err [C]')
-        self.axs['t1'].set_ylabel('t1 [C]')
-        self.axs['t2'].set_ylabel('t2 [C]')
+        self.axs['err'].set_ylabel(r'err [$\mathregular{\degree C}$]')
+        self.axs['t1'].set_ylabel(r't1 [$\mathregular{\degree C}$]')
+        self.axs['t2'].set_ylabel(r't2 [$\mathregular{\degree C}$]')
 
-        self.axs['p'].set_ylabel('p [A]/[C]')
-        self.axs['i'].set_ylabel('i [A]/([C][s])')
-        self.axs['d'].set_ylabel('d [A][s]/[C]')
+        self.axs['p'].set_ylabel(r'p [$\mathregular{A\ \degree C^{-1}}$]')
+        self.axs['i'].set_ylabel(r'i [$\mathregular{A\ \degree C^{-1}\ s^{-1}}$]')
+        self.axs['d'].set_ylabel(r'd [$\mathregular{A\ s\ \degree C^{-1}}$]')
 
         self.axs['i_raw'].set_ylabel('I_raw [A]')
         self.axs['i_ps'].set_ylabel('I_ps [A]')
